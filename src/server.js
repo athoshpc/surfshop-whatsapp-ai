@@ -8,6 +8,36 @@ const verifyToken = process.env.WHATSAPP_VERIFY_TOKEN;
 const accessToken = process.env.WHATSAPP_ACCESS_TOKEN;
 const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
 
+const boardTypeMap = {
+  "1": "longboard",
+  "2": "pranchinha",
+  "3": "fish",
+  "4": "fun"
+};
+
+const boardCatalog = {
+  longboard: [
+    "Longboard 9'0",
+    "Longboard 9'2",
+    "Longboard 9'4"
+  ],
+  pranchinha: [
+    "Pranchinha 5'10",
+    "Pranchinha 6'0",
+    "Pranchinha 6'1"
+  ],
+  fish: [
+    "Fish 5'6",
+    "Fish 5'8",
+    "Fish 5'10"
+  ],
+  fun: [
+    "Fun 6'8",
+    "Fun 7'0",
+    "Fun 7'2"
+  ]
+};
+
 app.use(express.json());
 
 function getMessageText(message) {
@@ -32,6 +62,108 @@ function getMessageText(message) {
   }
 
   return null;
+}
+
+function normalizeText(text) {
+  return (text || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
+function formatBoardType(type) {
+  const formattedTypes = {
+    longboard: "Longboard",
+    pranchinha: "Pranchinha",
+    fish: "Fish",
+    fun: "Fun"
+  };
+
+  return formattedTypes[type] || type || null;
+}
+
+function extractBoardType(text) {
+  const normalizedText = normalizeText(text);
+
+  if (boardTypeMap[normalizedText]) {
+    return boardTypeMap[normalizedText];
+  }
+
+  if (normalizedText.includes("longboard")) {
+    return "longboard";
+  }
+
+  if (normalizedText.includes("pranchinha")) {
+    return "pranchinha";
+  }
+
+  if (normalizedText.includes("fish")) {
+    return "fish";
+  }
+
+  if (normalizedText.includes("fun")) {
+    return "fun";
+  }
+
+  return null;
+}
+
+function buildBoardsMenu(name) {
+  return [
+    `Aloha${name ? `, ${name}` : ""}! Aqui e da Tikehau Surf Shop.`,
+    "Estamos desde 2003 no mercado, com qualidade, bom preco e grande acervo de pranchas novas e usadas.",
+    "Escolha o tipo de prancha para ver as opcoes:",
+    "1 - Longboard",
+    "2 - Pranchinha",
+    "3 - Fish",
+    "4 - Fun"
+  ].join("\n");
+}
+
+function buildBoardsByTypeReply(boardType) {
+  const boards = boardCatalog[boardType] || [];
+
+  if (boards.length === 0) {
+    return "No momento nao encontrei pranchas desse tipo no catalogo.";
+  }
+
+  return [
+    `${formatBoardType(boardType)}s disponiveis:`,
+    ...boards.map((board, index) => `${index + 1} - ${board}`),
+    "Se quiser, depois eu posso detalhar medidas, fotos e preco de cada uma."
+  ].join("\n");
+}
+
+function buildReplyText(message) {
+  const text = normalizeText(message.text);
+
+  if (!text) {
+    return buildBoardsMenu(message.name);
+  }
+
+  const wantsMenu = ["oi", "ola", "olá", "menu", "prancha", "pranchas", "aloha", "tikehau"].some((term) =>
+    text.includes(normalizeText(term))
+  );
+
+  if (wantsMenu) {
+    return buildBoardsMenu(message.name);
+  }
+
+  const boardType = extractBoardType(text);
+
+  if (boardType) {
+    return buildBoardsByTypeReply(boardType);
+  }
+
+  return [
+    "Hoje consigo te mostrar as opcoes por tipo de prancha:",
+    "1 - Longboard",
+    "2 - Pranchinha",
+    "3 - Fish",
+    "4 - Fun",
+    "Me responda com o numero ou com o nome do tipo."
+  ].join("\n");
 }
 
 function logWhatsAppMessages(body) {
@@ -145,7 +277,7 @@ app.post("/webhook", (req, res) => {
       continue;
     }
 
-    const replyText = `Recebi sua mensagem${message.name ? `, ${message.name}` : ""}: "${message.text || ""}"`;
+    const replyText = buildReplyText(message);
 
     sendWhatsAppTextMessage(message.from, replyText)
       .then(() => {
