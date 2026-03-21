@@ -1,2 +1,5 @@
 node_modules/
 .env
+/tmp-*.log
+/tools/
+/ngrok-v3-stable-windows-amd64.zip
