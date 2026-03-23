@@ -8,7 +8,64 @@ Minimal Node.js + Express backend for a WhatsApp Meta webhook MVP.
 - `GET /webhook` handles Meta webhook verification
 - `POST /webhook` receives WhatsApp events
 - incoming messages are logged in a readable format
-- text messages get a simple automatic reply through WhatsApp Cloud API
+- WhatsApp replies support interactive navigation for board types and board selection
+- board catalog is separated into [data/boards.js](C:\dev\apps\surfshop-whatsapp-ai\data\boards.js)
+- photo flow is prepared for Supabase Storage
+
+## Catalog structure
+
+Each board can now store:
+
+- type
+- title
+- liters
+- price
+- condition
+- `finSystem` (`FCS`, `FCS2` or `Futures`)
+- `photos` with:
+  - `localFile`
+  - `storagePath`
+- description
+
+## Supabase photo flow
+
+This project is ready to upload board photos to Supabase Storage.
+
+### Environment variables
+
+Add these to your local `.env`:
+
+```env
+SUPABASE_URL=your_supabase_project_url_here
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key_here
+SUPABASE_STORAGE_BUCKET=board-photos
+```
+
+### Local photo folders
+
+Save your images in:
+
+- [assets/boards/used-pranchinha-sharpeye-red](C:\dev\apps\surfshop-whatsapp-ai\assets\boards\used-pranchinha-sharpeye-red)
+- [assets/boards/used-pranchinha-lost-white](C:\dev\apps\surfshop-whatsapp-ai\assets\boards\used-pranchinha-lost-white)
+
+Current expected filenames:
+
+- `deck.jpg`
+- `bottom.jpg`
+
+### Upload command
+
+After saving the images locally, run:
+
+```bash
+npm run upload:board-photos
+```
+
+This uploads the files to Supabase Storage using the `storagePath` defined in [data/boards.js](C:\dev\apps\surfshop-whatsapp-ai\data\boards.js).
+
+### WhatsApp image sending
+
+When a board has valid Storage paths and the bucket is public, the `Ver fotos` action sends the board images through WhatsApp using the public URLs generated from Supabase.
 
 ## Local setup
 
@@ -24,15 +81,7 @@ npm install
 copy .env.example .env
 ```
 
-3. Fill `.env` with your values:
-
-```env
-PORT=3000
-WHATSAPP_VERIFY_TOKEN=your_verify_token_here
-WHATSAPP_ACCESS_TOKEN=your_access_token_here
-WHATSAPP_PHONE_NUMBER_ID=your_phone_number_id_here
-WHATSAPP_BUSINESS_ACCOUNT_ID=your_business_account_id_here
-```
+3. Fill `.env` with your values.
 
 ## Run locally
 
@@ -66,26 +115,9 @@ Use these values in the Meta webhook setup:
 - Webhook object: `WhatsApp Business Account`
 - Required field subscription: `messages`
 
-Example verification request:
-
-```text
-GET /webhook?hub.mode=subscribe&hub.verify_token=your_verify_token_here&hub.challenge=12345
-```
-
-If the token matches, the server responds with the `hub.challenge` value.
-
-## Test flow
-
-1. Start the server with `npm start`
-2. Expose port `3000` publicly with `ngrok http 3000`
-3. Configure the Meta webhook with your public `ngrok` URL
-4. Subscribe to the `messages` field
-5. Add your real WhatsApp number as an allowed test recipient in Meta
-6. Send a message to the Meta test number
-7. Check the server logs for the incoming webhook and automatic reply
-
 ## Notes
 
 - temporary Meta access tokens expire, so update `.env` when you generate a new one
 - if a reply fails with `Recipient phone number not in allowed list`, re-check the allowed test recipient number in Meta
 - keep tokens and `ngrok` authtokens private and rotate them if they were exposed
+- Supabase bucket must be public for direct WhatsApp image sending by URL

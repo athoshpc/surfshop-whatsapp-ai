@@ -1,0 +1,112 @@
+[
+  {
+    "id": "used-pranchinha-sharpeye-red",
+    "type": "pranchinha",
+    "title": "Pranchinha Sharpeye",
+    "liters": "27.8L",
+    "price": "R$ 1.890",
+    "condition": "muito bom",
+    "finSystem": "FCS2",
+    "description": "Pranchinha usada, solta e boa pro surf do dia a dia.",
+    "photos": [
+      {
+        "label": "deck",
+        "localFile": "assets/boards/used-pranchinha-sharpeye-red/deck.jpeg",
+        "storagePath": "boards/used-pranchinha-sharpeye-red/deck.jpeg"
+      },
+      {
+        "label": "bottom",
+        "localFile": "assets/boards/used-pranchinha-sharpeye-red/bottom.jpeg",
+        "storagePath": "boards/used-pranchinha-sharpeye-red/bottom.jpeg"
+      }
+    ]
+  },
+  {
+    "id": "used-pranchinha-lost-white",
+    "type": "pranchinha",
+    "title": "Pranchinha Lost",
+    "liters": "29.4L",
+    "price": "R$ 2.150",
+    "condition": "bom",
+    "finSystem": "Futures",
+    "description": "Pranchinha usada, com boa remada e pronta pra mar do dia a dia.",
+    "photos": [
+      {
+        "label": "deck",
+        "localFile": "assets/boards/used-pranchinha-lost-white/deck.jpeg",
+        "storagePath": "boards/used-pranchinha-lost-white/deck.jpeg"
+      },
+      {
+        "label": "bottom",
+        "localFile": "assets/boards/used-pranchinha-lost-white/bottom.jpeg",
+        "storagePath": "boards/used-pranchinha-lost-white/bottom.jpeg"
+      }
+    ]
+  },
+  {
+    "id": "pranchinha-costasul",
+    "type": "pranchinha",
+    "title": "CostaSul",
+    "liters": "31L",
+    "price": "1500",
+    "condition": "boa",
+    "finSystem": "Futures",
+    "description": "Prancha pranchinha cadastrada via WhatsApp. Descricao a confirmar.",
+    "photos": [
+      {
+        "label": "deck",
+        "localFile": "",
+        "storagePath": "boards/pranchinha-costasul/deck.jpeg"
+      },
+      {
+        "label": "bottom",
+        "localFile": "",
+        "storagePath": "boards/pranchinha-costasul/bottom.jpeg"
+      }
+    ]
+  },
+  {
+    "id": "fish-grilloboards",
+    "type": "fish",
+    "title": "GrilloBoards",
+    "liters": "33L",
+    "price": "1990",
+    "condition": "muito boa",
+    "finSystem": "FCS",
+    "description": "Prancha fish cadastrada via WhatsApp. Descricao a confirmar.",
+    "photos": [
+      {
+        "label": "deck",
+        "localFile": "",
+        "storagePath": ""
+      },
+      {
+        "label": "bottom",
+        "localFile": "",
+        "storagePath": ""
+      }
+    ]
+  },
+  {
+    "id": "longboard-soul-surfer",
+    "type": "longboard",
+    "title": "Soul Surfer",
+    "liters": "43L",
+    "price": "2900",
+    "condition": "nova",
+    "finSystem": "FCS",
+    "description": "Prancha longboard cadastrada via WhatsApp. Descricao a confirmar.",
+    "photos": [
+      {
+        "label": "deck",
+        "localFile": "",
+        "storagePath": "boards/longboard-soul-surfer/deck.jpeg"
+      },
+      {
+        "label": "bottom",
+        "localFile": "",
+        "storagePath": "boards/longboard-soul-surfer/bottom.jpeg"
+      }
+    ]
+  }
+]

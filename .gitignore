@@ -3,3 +3,6 @@ node_modules/
 /tmp-*.log
 /tools/
 /ngrok-v3-stable-windows-amd64.zip
+/*.log
+/server-*.out.log
+/server-*.err.log

@@ -1,15 +1,17 @@
 {
-  "name": "surfshop-whatsapp-ai",
-  "version": "1.0.0",
-  "private": true,
-  "description": "Minimal Express backend for a WhatsApp Meta webhook MVP",
-  "main": "src/server.js",
-  "scripts": {
-    "start": "node src/server.js",
-    "dev": "node --watch src/server.js"
-  },
-  "dependencies": {
-    "dotenv": "^16.6.1",
-    "express": "^5.1.0"
-  }
+    "name":  "surfshop-whatsapp-ai",
+    "version":  "1.0.0",
+    "private":  true,
+    "description":  "Minimal Express backend for a WhatsApp Meta webhook MVP",
+    "main":  "src/server.js",
+    "scripts":  {
+                    "start":  "node src/server.js",
+                    "dev":  "node --watch src/server.js",
+                    "upload:board-photos":  "node scripts/upload-board-photos.js"
+                },
+    "dependencies":  {
+                         "@supabase/supabase-js":  "^2.99.3",
+                         "dotenv":  "^16.6.1",
+                         "express":  "^5.1.0"
+                     }
 }
