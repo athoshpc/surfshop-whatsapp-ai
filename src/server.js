@@ -1,4 +1,4 @@
-﻿require("dotenv").config();
+require("dotenv").config();
 
 const express = require("express");
 const path = require("path");
@@ -24,7 +24,7 @@ const unicodeDebugEnabled = process.env.WHATSAPP_UNICODE_DEBUG === "true";
 const adminNumbers = new Set(
   String(process.env.WHATSAPP_ADMIN_NUMBERS || "")
     .split(",")
-    .map((item) => item.trim())
+    .map((item) => normalizePhoneNumber(item))
     .filter(Boolean)
 );
 const sessions = new Map();
@@ -60,8 +60,12 @@ function normalizeText(text) {
     .trim();
 }
 
+function normalizePhoneNumber(value) {
+  return String(value || "").replace(/\D/g, "");
+}
+
 function isAdminMessage(from) {
-  return adminNumbers.has(String(from || "").trim());
+  return adminNumbers.has(normalizePhoneNumber(from));
 }
 
 function detectImageExtension(mimeType) {
@@ -78,13 +82,15 @@ function detectImageExtension(mimeType) {
 }
 
 function buildTextMenu(name) {
-  const greeting = name ? `Aloha, ${name}. 🤙` : "Aloha. 🤙";
-
+  const greeting = name ? `Aloha, ${name}. \u{1F919}` : "Aloha. \u{1F919}";
   return [
     greeting,
-    "Aqui e da Tikehau Surf Shop 🌊",
-    "Estamos desde 2003 no mercado com pranchas novas e usadas, qualidade boa e preco justo.",
-    "Qual tipo voce quer ver agora?",
+    "Aqui e da Tikehau Surf Shop \u{1F30A}",
+    "Estamos desde 2003 no mercado.",
+    "Diversas opcoes de produtos com qualidade e bom preco.",
+    "Grande acervo de pranchas novas e usadas e roupa de neoprene.",
+    "A venda de pranchas novas e usadas ja esta funcionando por aqui no WhatsApp.",
+    "Qual tipo de prancha voce quer ver agora?",
     "1. Longboard",
     "2. Pranchinha",
     "3. Fish",
@@ -94,9 +100,8 @@ function buildTextMenu(name) {
 
 function wantsMainMenu(text, selectionId) {
   if (selectionId === "action_more_types") return true;
-
   const normalized = normalizeText(text);
-  return ["oi", "ola", "olá", "menu", "prancha", "pranchas", "aloha", "quero ver"].some((term) =>
+  return ["oi", "ola", "menu", "prancha", "pranchas", "aloha", "quero ver"].some((term) =>
     normalized.includes(normalizeText(term))
   );
 }
@@ -123,11 +128,11 @@ function formatBoardLine(board, index) {
 function buildBoardsByTypeReply(boardType) {
   const boards = getBoardsByType(boardType);
   if (!boards.length) {
-    return "Nao achei pranchas desse tipo agora 🌊 Se quiser, te mostro outro modelo.";
+    return "Nao achei pranchas desse tipo agora \u{1F30A} Se quiser, te mostro outro modelo.";
   }
 
   return [
-    `Separei essas ${boardTypeLabels[boardType].toLowerCase()}s pra voce dar uma olhada 🌊`,
+    `Separei essas ${boardTypeLabels[boardType].toLowerCase()}s pra voce dar uma olhada \u{1F30A}`,
     "",
     boards.map((board, index) => formatBoardLine(board, index)).join("\n\n")
   ].join("\n");
@@ -140,10 +145,10 @@ function buildBoardTypeList(name) {
       type: "list",
       header: {
         type: "text",
-        text: name ? `Aloha, ${name}. 🤙` : "Aloha. 🤙"
+        text: name ? `Aloha, ${name}. \u{1F919}` : "Aloha. \u{1F919}"
       },
       body: {
-        text: "Aqui e da Tikehau Surf Shop 🌊 Estamos desde 2003 no mercado. Toque pra escolher o tipo de prancha."
+        text: "Aqui e da Tikehau Surf Shop \u{1F30A} Estamos desde 2003 no mercado. Toque pra escolher o tipo de prancha."
       },
       footer: {
         text: "Escolhe o tipo que combina mais contigo"
@@ -174,20 +179,20 @@ function buildBoardPickerList(boardType) {
     interactive: {
       type: "list",
       body: {
-        text: `Agora toca na ${boardTypeLabels[boardType].toLowerCase()} que voce quer abrir melhor.`
+        text: "Escolha a prancha pra ver os detalhes."
       },
       footer: {
         text: "Vou te mostrar detalhe e fotos em seguida"
       },
       action: {
-        button: "Alterar prancha",
+        button: "Escolher prancha",
         sections: [
           {
             title: boardTypeLabels[boardType],
             rows: boards.map((board) => ({
               id: `board:${boardType}:${board.id}`,
               title: board.title,
-              description: `${board.liters} • ${board.price} • ${board.finSystem}`
+              description: `${board.liters} | ${board.price} | ${board.finSystem}`
             }))
           }
         ]
@@ -198,12 +203,12 @@ function buildBoardPickerList(boardType) {
 
 function buildBoardDetailReply(board) {
   return [
-    "Boa. Essa aqui vale olhar com carinho 🌊",
+    "Boa. Essa aqui vale olhar com carinho \u{1F30A}",
     "",
-    `${board.title} 🏄`,
-    `Litros: ${board.liters} 📏`,
-    `Preco: ${board.price} 💰`,
-    `Estado: ${board.condition} ✅`,
+    `${board.title} \u{1F3C4}`,
+    `Litros: ${board.liters} \u{1F4CF}`,
+    `Preco: ${board.price} \u{1F4B0}`,
+    `Estado: ${board.condition} \u{2705}`,
     `Sistema de quilhas: ${board.finSystem}`,
     board.description
   ].join("\n");
@@ -215,7 +220,7 @@ function buildBoardActionsButtons() {
     interactive: {
       type: "button",
       body: {
-        text: "O que voce quer fazer agora? 🤙"
+        text: "O que voce quer fazer agora? \u{1F919}"
       },
       action: {
         buttons: [
@@ -233,10 +238,10 @@ function buildAdminHomeButtons() {
     interactive: {
       type: "button",
       body: {
-        text: "Modo admin ativo 🤙\nO que voce quer fazer agora?"
+        text: "Modo admin da loja.\nUso restrito a pessoas autorizadas para cadastro e atualizacao de produtos."
       },
       footer: {
-        text: "Fluxo rapido pra cuidar do acervo"
+        text: "Escolha a proxima acao no acervo"
       },
       action: {
         buttons: [
@@ -256,7 +261,7 @@ function buildAdminInventoryReply() {
   }
 
   return [
-    "Acervo atual 🌊",
+    "Acervo atual",
     "",
     boards
       .map((board) => `${board.title}\nID: ${board.id}\nFotos: ${(board.photos || []).filter((photo) => photo.storagePath).length}/2`)
@@ -286,7 +291,7 @@ function buildAdminViewBoardPickerList() {
             rows: boards.map((board) => ({
               id: `admin-view-board:${board.id}` ,
               title: board.title,
-              description: `${board.type} • ${board.finSystem} • ${board.price}`
+              description: `${board.type} | ${board.finSystem} | ${board.price}`
             }))
           }
         ]
@@ -333,7 +338,7 @@ function buildAdminBoardPickerList() {
             rows: boards.map((board) => ({
               id: `admin-board:${board.id}`,
               title: board.title,
-              description: `${board.type} • ${board.finSystem} • ${board.price}`
+              description: `${board.type} | ${board.finSystem} | ${board.price}`
             }))
           }
         ]
@@ -366,7 +371,7 @@ function buildAdminPhotoSlotButtons(board) {
 
 function buildAdminUploadPrompt(board, label) {
   const labelText = label === "deck" ? "frente / deck" : "verso / bottom";
-  return `Perfeito 🤙\nAgora manda a foto de ${labelText} da ${board.title}.`;
+  return `Perfeito.\nAgora manda a foto de ${labelText} da ${board.title}.`;
 }
 
 function slugifyAdminValue(value) {
@@ -395,7 +400,7 @@ function buildAdminNewBoardTypeList() {
     interactive: {
       type: "list",
       body: {
-        text: "Boa. Vamos cadastrar uma prancha nova 🤙\nEscolhe primeiro o tipo dela."
+        text: "Boa. Vamos cadastrar uma prancha nova \u{1F919}\nEscolhe primeiro o tipo dela."
       },
       footer: {
         text: "Depois eu vou te guiando no resto"
@@ -419,7 +424,7 @@ function buildAdminNewBoardTypeList() {
 }
 
 function buildAdminNewBoardTitlePrompt(type) {
-  return `Perfeito 🤙\nTipo: ${boardTypeLabels[type]}\nAgora me manda o nome da prancha.`;
+  return `Perfeito \u{1F919}\nTipo: ${boardTypeLabels[type]}\nAgora me manda o nome da prancha.`;
 }
 
 function buildAdminNewBoardLitersPrompt(title) {
@@ -476,7 +481,7 @@ function buildAdminNewBoardFinSystemButtons(title) {
 
 function buildAdminNewBoardCreatedReply(board) {
   return [
-    "Prancha cadastrada com sucesso 🤙",
+    "Prancha cadastrada com sucesso \u{1F919}",
     `${board.title}`,
     `Tipo: ${boardTypeLabels[board.type]}`,
     `Litros: ${board.liters}`,
@@ -487,7 +492,7 @@ function buildAdminNewBoardCreatedReply(board) {
 }
 
 function buildAdminNewBoardReply() {
-  return "Boa. Vamos cadastrar uma prancha nova 🤙";
+  return "Boa. Vamos cadastrar uma prancha nova \u{1F919}";
 }
 
 function parseAdminNewBoardTypeSelection(selectionId) {
@@ -800,7 +805,7 @@ app.post("/webhook", (req, res) => {
     });
 
     if (adminMatch) {
-      if (message.type === "text" && text === "admin") {
+      if (message.type === "text" && (text === "admin" || wantsMainMenu(text, message.selectionId))) {
         sessions.set(message.from, { adminMode: true, adminAction: null, adminUpload: null, boardId: null });
         sendAdminHomeMenu(message.from)
           .then(() => console.log("WhatsApp admin home sent:", { to: message.from }))
@@ -840,7 +845,7 @@ app.post("/webhook", (req, res) => {
 
       if (message.selectionId === "admin:cancel") {
         sessions.set(message.from, { adminMode: true, adminAction: null, adminUpload: null, boardId: null });
-        sendWhatsAppTextMessage(message.from, "Fechou. Voltei pro menu admin 🤙")
+        sendWhatsAppTextMessage(message.from, "Fechou. Voltei pro menu admin.")
           .then(async () => {
             await delay(300);
             await sendAdminHomeMenu(message.from);
@@ -942,17 +947,19 @@ app.post("/webhook", (req, res) => {
 
           const detailReply = buildAdminBoardDetailReply(board);
           const photoUrls = getBoardPhotoUrls(board);
+          const imageCaption = `${detailReply}\n\nFoto principal`;
 
-          sendWhatsAppTextMessage(message.from, detailReply)
-            .then(async () => {
-              if (photoUrls[0]) {
-                await delay(300);
-                await sendWhatsAppImageMessage(message.from, photoUrls[0], `${board.title}\nFoto principal`);
-              }
-              await delay(300);
-              await sendAdminHomeMenu(message.from);
-            })
-            .catch((error) => console.error("WhatsApp admin board view error:", error.message));
+          (async () => {
+            if (photoUrls[0]) {
+              await sendWhatsAppImageMessage(message.from, photoUrls[0], imageCaption);
+              await delay(4500);
+            } else {
+              await sendWhatsAppTextMessage(message.from, detailReply);
+              await delay(900);
+            }
+
+            await sendAdminHomeMenu(message.from);
+          })().catch((error) => console.error("WhatsApp admin board view error:", error.message));
           continue;
         }
 
@@ -1091,7 +1098,7 @@ app.post("/webhook", (req, res) => {
 
         if (!board) {
           sessions.set(message.from, { ...session, adminUpload: null, adminAction: null, boardId: null });
-          sendWhatsAppTextMessage(message.from, "Essa prancha nao existe mais no acervo. Manda admin pra recomeçar.")
+          sendWhatsAppTextMessage(message.from, "Essa prancha nao existe mais no acervo. Manda admin pra recomecar.")
             .catch((error) => console.error("WhatsApp admin missing board after arm error:", error.message));
           continue;
         }
@@ -1119,7 +1126,7 @@ app.post("/webhook", (req, res) => {
               });
               await sendWhatsAppTextMessage(
                 message.from,
-                `Prancha cadastrada com sucesso 🤙
+                `Prancha cadastrada com sucesso ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â°ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¤ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¾ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢
 ${updatedBoard.title}
 Fotos salvas e acervo atualizado.`
               );
@@ -1137,7 +1144,7 @@ Fotos salvas e acervo atualizado.`
             });
             await sendWhatsAppTextMessage(
               message.from,
-              `Foto salva com sucesso 🤙
+              `Foto salva com sucesso ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â°ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¤ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¾ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢
 ${updatedBoard.title}
 Posicao: ${label}`
             );
@@ -1153,7 +1160,7 @@ Posicao: ${label}`
       }
 
       if (session.adminMode) {
-        sendWhatsAppTextMessage(message.from, "To contigo no modo admin 🤙 Toca numa opcao abaixo pra seguir.")
+        sendWhatsAppTextMessage(message.from, "To contigo no modo admin ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â°ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¤ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¾ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ Toca numa opcao abaixo pra seguir.")
           .then(async () => {
             await delay(300);
             await sendAdminHomeMenu(message.from);
@@ -1239,8 +1246,8 @@ Posicao: ${label}`
     if (message.selectionId === "action_seller") {
       const board = session.boardId ? getBoardById(session.boardId) : null;
       const sellerReply = board
-        ? `Perfeito 🤙 Vou te conectar com o vendedor pra seguir sobre a ${board.title}.`
-        : "Perfeito 🤙 Vou te conectar com o vendedor.";
+        ? `Perfeito \u{1F919}Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â°ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¤ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¾ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ Vou te conectar com o vendedor pra seguir sobre a ${board.title}.`
+        : "Perfeito \u{1F919}Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â°ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¤ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¾ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ Vou te conectar com o vendedor.";
 
       sendWhatsAppTextMessage(message.from, sellerReply)
         .then(() => console.log("WhatsApp seller reply sent:", { to: message.from }))
@@ -1254,7 +1261,7 @@ Posicao: ${label}`
       .catch(async (error) => {
         console.error("WhatsApp default menu error:", error.message);
         try {
-          await sendWhatsAppTextMessage(message.from, "Nao entendi muito bem 😅 Se quiser, eu te mostro as pranchas disponiveis.");
+          await sendWhatsAppTextMessage(message.from, "Nao entendi muito bem ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â°ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¹ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¦ Se quiser, eu te mostro as pranchas disponiveis.");
           await delay(400);
           await sendWhatsAppTextMessage(message.from, buildTextMenu(message.name));
           console.log("WhatsApp default fallback sent:", { to: message.from });
